@@ -1,4 +1,4 @@
-# ESP32 Sauna Controller
+# ESP32 Sauna Controller - THIS IS A WORK IN PROGRESS AND MAY NOT BE COMPLETE
 
 A smart sauna controller built with ESPHome, featuring temperature monitoring, automated safety cutoffs, and Home Assistant integration.
 
@@ -31,7 +31,7 @@ This project creates a fully-functional sauna controller with:
 ### Core Functionality
 - **Temperature Monitoring**: DS18B20 waterproof probe with 5-second updates
 - **LCD Display**: 16x2 I2C display showing date, time, temperature (°C/°F), and heater status
-- **Relay Control**: Solid-state control of sauna heater
+- **Relay Control**: Control of sauna heater
 
 ### Safety Features
 - **Overheat Protection**: Automatic shutoff at 200°F (93.3°C)
@@ -55,17 +55,15 @@ This project creates a fully-functional sauna controller with:
 | **1602 LCD Display** | 16x2 with I2C backpack (PCF8574) | 1 | $6 | Amazon, AliExpress |
 | **DS18B20 Temperature Probe** | Waterproof, 3-wire cable | 1 | $8 | Amazon, AliExpress |
 | **Relay Module** | 5V, 10A+ rated, optoisolated | 1 | $5 | Amazon, AliExpress |
-| **4.7kΩ Resistor** | 1/4W (optional, may be built into probe) | 1 | $0.10 | Local electronics store |
+| **4.7kΩ Resistor** | 1/4W (may be built into or included w/ probe) | 1 | $0.10 | Local electronics store |
 | **USB Power Supply** | 5V, 1A+ | 1 | $5 | Amazon |
 | **Wires** | 22 AWG for low voltage | - | $5 | Amazon |
 | **Wago Connectors** | 221 series or similar | 10 | $10 | Amazon, Home Depot |
-| **Project Enclosure** | 100x65x45mm (approx) | 1 | $8 | Amazon, 3D printed |
+| **Project Enclosure** | 100x65x45mm (approx) | 1 | $8 | DIY, Linked |
 
-**Total Cost**: ~$55 (excluding 3D printed enclosure)
+**Total Cost**: ~$55
 
 ### Optional Components
-- **Barrel jack connector** for cleaner power input
-- **Printed circuit board** for permanent installation
 - **3D printed enclosure** (STL files in `/hardware` folder)
 
 ### Tools Needed
