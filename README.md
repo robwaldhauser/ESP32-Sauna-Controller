@@ -31,13 +31,12 @@ This project creates a fully-functional sauna controller with:
 ### Core Functionality
 - **Temperature Monitoring**: DS18B20 waterproof probe with 5-second updates
 - **LCD Display**: 16x2 I2C display showing date, time, temperature (°C/°F), and heater status
-- **Relay Control**: Solid-state control of sauna heater
+- **Relay Control**: Control of sauna heater
 
 ### Safety Features
-- **Overheat Protection**: Automatic shutoff at 200°F (93.3°C)
-- **Auto-Resume**: Resumes heating when temperature drops below 190°F (87.8°C) if master switch is still on
-- **6-Hour Timeout**: Automatic shutoff after 6 hours of continuous operation
-- **Temperature Alerts**: Notification when sauna reaches 160°F (71°C)
+- **Overheat Protection**: Automatic shutoff at 200°F (93.3°C) (user configurable)
+- **Auto-Resume**: Resumes heating when temperature drops below 190°F (87.8°C) if master switch is still on (user configurable)
+- **6-Hour Timeout**: Automatic shutoff after 6 hours of continuous operation (user configurable)
 
 ### Smart Features
 - **Home Assistant Integration**: Full control and monitoring through HA dashboard
@@ -55,7 +54,7 @@ This project creates a fully-functional sauna controller with:
 | **1602 LCD Display** | 16x2 with I2C backpack (PCF8574) | 1 | $6 | Amazon, AliExpress |
 | **DS18B20 Temperature Probe** | Waterproof, 3-wire cable | 1 | $8 | Amazon, AliExpress |
 | **Relay Module** | 5V, 10A+ rated, optoisolated | 1 | $5 | Amazon, AliExpress |
-| **4.7kΩ Resistor** | 1/4W (optional, may be built into probe) | 1 | $0.10 | Local electronics store |
+| **4.7kΩ Resistor** | 1/4W (may be built into or included w/ probe) | 1 | $0.10 | Local electronics store |
 | **USB Power Supply** | 5V, 1A+ | 1 | $5 | Amazon |
 | **Wires** | 22 AWG for low voltage | - | $5 | Amazon |
 | **Wago Connectors** | 221 series or similar | 10 | $10 | Amazon, Home Depot |
@@ -64,8 +63,6 @@ This project creates a fully-functional sauna controller with:
 **Total Cost**: ~$55 (excluding 3D printed enclosure)
 
 ### Optional Components
-- **Barrel jack connector** for cleaner power input
-- **Printed circuit board** for permanent installation
 - **3D printed enclosure** (STL files in `/hardware` folder)
 
 ### Tools Needed
