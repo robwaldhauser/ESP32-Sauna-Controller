@@ -1,4 +1,4 @@
-# ESP32 Sauna Controller - THIS IS A WORK IN PROGRESS AND MAY NOT BE COMPLETE
+# ESP32 Sauna Controller
 
 A smart sauna controller built with ESPHome, featuring temperature monitoring, automated safety cutoffs, and Home Assistant integration.
 
@@ -31,12 +31,13 @@ This project creates a fully-functional sauna controller with:
 ### Core Functionality
 - **Temperature Monitoring**: DS18B20 waterproof probe with 5-second updates
 - **LCD Display**: 16x2 I2C display showing date, time, temperature (°C/°F), and heater status
-- **Relay Control**: Control of sauna heater
+- **Relay Control**: Solid-state control of sauna heater
 
 ### Safety Features
-- **Overheat Protection**: Automatic shutoff at 200°F (93.3°C) (user configurable)
-- **Auto-Resume**: Resumes heating when temperature drops below 190°F (87.8°C) if master switch is still on (user configurable)
-- **6-Hour Timeout**: Automatic shutoff after 6 hours of continuous operation (user configurable)
+- **Overheat Protection**: Automatic shutoff at 200°F (93.3°C)
+- **Auto-Resume**: Resumes heating when temperature drops below 190°F (87.8°C) if master switch is still on
+- **6-Hour Timeout**: Automatic shutoff after 6 hours of continuous operation
+- **Temperature Alerts**: Notification when sauna reaches 160°F (71°C)
 
 ### Smart Features
 - **Home Assistant Integration**: Full control and monitoring through HA dashboard
@@ -54,7 +55,7 @@ This project creates a fully-functional sauna controller with:
 | **1602 LCD Display** | 16x2 with I2C backpack (PCF8574) | 1 | $6 | Amazon, AliExpress |
 | **DS18B20 Temperature Probe** | Waterproof, 3-wire cable | 1 | $8 | Amazon, AliExpress |
 | **Relay Module** | 5V, 10A+ rated, optoisolated | 1 | $5 | Amazon, AliExpress |
-| **4.7kΩ Resistor** | 1/4W (may be built into or included w/ probe) | 1 | $0.10 | Local electronics store |
+| **4.7kΩ Resistor** | 1/4W (optional, may be built into probe) | 1 | $0.10 | Local electronics store |
 | **USB Power Supply** | 5V, 1A+ | 1 | $5 | Amazon |
 | **Wires** | 22 AWG for low voltage | - | $5 | Amazon |
 | **Wago Connectors** | 221 series or similar | 10 | $10 | Amazon, Home Depot |
@@ -63,6 +64,8 @@ This project creates a fully-functional sauna controller with:
 **Total Cost**: ~$55 (excluding 3D printed enclosure)
 
 ### Optional Components
+- **Barrel jack connector** for cleaner power input
+- **Printed circuit board** for permanent installation
 - **3D printed enclosure** (STL files in `/hardware` folder)
 
 ### Tools Needed
@@ -160,7 +163,38 @@ This project creates a fully-functional sauna controller with:
 
 ## Software Setup
 
-### Prerequisites
+### Two Installation Methods
+
+You can set up this controller in two ways:
+
+#### Method 1: Standalone (No ESPHome Installation Required) ⭐ EASIEST
+
+Perfect if you just want a working sauna controller without installing anything on your computer!
+
+**What you get**:
+- Web interface at `http://saunacontroller.local` or device IP address
+- Toggle sauna on/off from your phone/computer browser
+- View temperature in real-time
+- Works on your WiFi or its own hotspot
+
+**Steps**:
+1. Download the pre-compiled `.bin` firmware from the [Releases](../../releases) page
+2. Flash to ESP32 using [ESPHome Web Flasher](https://web.esphome.io/)
+3. Connect ESP32 via USB to computer
+4. Open https://web.esphome.io/ in Chrome/Edge browser
+5. Click "Connect" and select your ESP32
+6. Click "Install" and choose the downloaded `.bin` file
+7. After flashing, connect to "Sauna Fallback" WiFi (password: `fallback123`)
+8. Configure your WiFi through the captive portal
+9. Done! Access via `http://saunacontroller.local` or the IP shown on LCD
+
+**No computer software required after initial flash!**
+
+#### Method 2: DIY/Developer Method (With ESPHome)
+
+If you want to customize the configuration or don't want to use pre-compiled firmware:
+
+**Prerequisites**:
 
 1. **Install ESPHome**
    ```bash
@@ -191,9 +225,76 @@ esp32:
 # ... (full config in repo)
 ```
 
-### Installation Steps
+### Standalone Usage (No Home Assistant)
 
-#### First-Time Flash (USB Required)
+Once flashed, your sauna controller works completely independently!
+
+#### Accessing the Web Interface
+
+**On Your WiFi**:
+1. Open browser on phone/computer
+2. Go to `http://saunacontroller.local`
+3. Or use the IP address shown on the LCD display
+
+**Using Fallback Hotspot** (if WiFi fails):
+1. Connect to WiFi network "Sauna Fallback"
+2. Password: `fallback123`
+3. Go to `http://192.168.4.1`
+
+#### Web Interface Features
+
+The built-in web interface shows:
+- 🌡️ **Current temperature** (live updates)
+- 🔄 **Sauna on/off toggle** (click to control)
+- 📊 **Sensor status** (temp probe, relay state)
+- 📶 **WiFi signal strength**
+- 🔄 **Uptime** counter
+
+**Example**:
+```
+Sauna Controller
+═══════════════════════
+
+🌡️ Sauna Temperature: 165.2°F
+
+🔥 Sauna: ○ OFF  [Toggle]
+
+🔥 Sauna Heater: OFF
+
+📶 WiFi Signal: -45 dBm
+
+⏱️ Uptime: 2d 5h 32m
+```
+
+#### Changing WiFi Settings (Standalone)
+
+If you need to connect to a different WiFi network:
+
+1. Power on the ESP32
+2. Wait 30 seconds for it to try connecting
+3. If connection fails, it creates fallback hotspot
+4. Connect to "Sauna Fallback" (password: `fallback123`)
+5. Captive portal automatically opens
+6. Enter your new WiFi credentials
+7. Device will reboot and connect
+
+**No computer needed for WiFi changes!**
+
+#### OTA Updates (Standalone)
+
+Even in standalone mode, you can update firmware wirelessly:
+
+1. Compile new firmware (on any computer with ESPHome)
+2. Go to `http://saunacontroller.local`
+3. Click "OTA Update"
+4. Upload the new `.bin` file
+5. Wait for update to complete
+
+**Or use the web flasher**:
+1. Download new firmware from releases
+2. Go to https://web.esphome.io/
+3. Connect via USB
+4. Flash new version
 
 1. **Connect ESP32 to computer via USB**
 
@@ -285,7 +386,16 @@ display:
 - One-time notification per heating session
 - Resets when you turn sauna off
 
-## Home Assistant Integration
+## Home Assistant Integration (Optional)
+
+**Note**: Home Assistant is **completely optional**! The sauna controller works perfectly standalone via its web interface.
+
+However, if you use Home Assistant, you get these extra features:
+- 📱 **Mobile app notifications** (sauna ready, overheat alerts)
+- 🤖 **Automations** (schedule preheating, auto-shutoff rules)
+- 📊 **History graphs** (temperature trends over time)
+- 🗣️ **Voice control** ("Hey Google, turn on the sauna")
+- 📲 **Remote access** (control from anywhere)
 
 ### Automatic Discovery
 
@@ -582,4 +692,5 @@ If you encounter issues:
 
 **Version**: 1.0.0
 **Last Updated**: January 2026
-**Author**: Rob Waldhauser
+**Author**: Rob Makes
+**Project**: https://rob-makes.com
