@@ -1,0 +1,254 @@
+# Encryption: encrypt-key
+esphome:
+  name: saunacontroller
+  friendly_name: SaunaController
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging with more details
+logger:
+  level: DEBUG
+  logs:
+    sensor: DEBUG
+    dallas_temp: DEBUG
+    one_wire: DEBUG
+    component: ERROR  # Suppress component warnings
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "api-key"
+
+ota:
+  - platform: esphome
+    password: "ota-key"
+
+wifi:
+  ssid: wifi
+  password: password
+  power_save_mode: none
+  output_power: 20dB  # Max is typically 20dB
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Sauna Fallback"
+    password: "fallback123"
+
+captive_portal:
+
+# Enable web server
+web_server:
+  port: 80
+
+# Time component for date/time display
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    timezone: America/New_York
+
+# Bluetooth Proxy for LiTime battery monitoring
+#esp32_ble_tracker:
+#  scan_parameters:
+#    interval: 320ms
+#    window: 300ms
+#    active: true
+#    continuous: true
+
+#bluetooth_proxy:
+#  active: true
+
+# I2C Bus for LCD Display
+i2c:
+  sda: GPIO21  # Standard ESP32 I2C SDA
+  scl: GPIO22  # Standard ESP32 I2C SCL
+  scan: true
+  id: i2c_bus
+  frequency: 100kHz  # Lower frequency for better compatibility
+
+# OneWire bus for DS18B20 temperature sensor
+one_wire:
+  - platform: gpio
+    pin: 
+      number: GPIO4 # Good for OneWire, has pullup
+      mode:
+        input: true
+        pullup: true
+
+# Global variable to store last valid temperature
+globals:
+  - id: last_valid_temp
+    type: float
+    restore_value: no
+    initial_value: 'NAN'
+
+# Temperature sensor
+sensor:
+  - platform: dallas_temp
+    name: "Sauna Temperature"
+    id: sauna_temp
+    accuracy_decimals: 1
+    unit_of_measurement: "°C"
+    update_interval: 10s
+    filters:
+      - sliding_window_moving_average:
+          window_size: 3
+          send_every: 1
+      - filter_out: nan  # Don't publish NaN values to HA
+    on_value:
+      then:
+        # Store valid temperature reading
+        - lambda: |-
+            if (!isnan(x)) {
+              id(last_valid_temp) = x;
+            }
+        # Check if temperature is ready (160°F = 71.1°C)
+        - if:
+            condition:
+              lambda: 'return x >= 71.1;'
+            then:
+              - if:
+                  condition:
+                    binary_sensor.is_off: temp_ready_notified
+                  then:
+                    - binary_sensor.template.publish:
+                        id: temp_ready_notified
+                        state: ON
+                    - homeassistant.event:
+                        event: esphome.sauna_ready
+                        data:
+                          message: "Sauna is ready! Temperature is over 160°F"
+        
+        # Emergency shutoff if over 200°F (93.3°C)
+        - if:
+            condition:
+              lambda: 'return x >= 93.3;'
+            then:
+              - switch.turn_off: sauna_relay_actual
+              - homeassistant.event:
+                  event: esphome.sauna_overheat
+                  data:
+                    message: "SAFETY: Sauna overheated! Heater turned off at 200°F"
+        
+        # Turn back on if temp drops below 190°F (87.8°C) and master switch is on
+        - if:
+            condition:
+              and:
+                - lambda: 'return x < 87.8;'
+                - switch.is_on: sauna_master_switch
+            then:
+              - switch.turn_on: sauna_relay_actual
+
+  # WiFi Signal Strength
+  - platform: wifi_signal
+    name: "Sauna WiFi Signal"
+    update_interval: 60s
+  
+  # Uptime sensor to track runtime
+  - platform: uptime
+    name: "Sauna Uptime"
+    id: sauna_uptime
+
+# Binary sensor to track if we've sent the ready notification
+binary_sensor:
+  - platform: template
+    name: "Sauna Ready Notification Sent"
+    id: temp_ready_notified
+    internal: true
+  
+  # Actual relay state for diagnostics
+  - platform: template
+    name: "Sauna Heater"
+    id: sauna_relay_status
+    device_class: running
+    lambda: |-
+      return id(sauna_relay_actual).state;
+    on_press:
+      - component.update: sauna_display
+    on_release:
+      - component.update: sauna_display
+
+# Master switch - what user controls
+switch:
+  - platform: template
+    name: "Sauna"
+    id: sauna_master_switch
+    icon: "mdi:radiator"
+    restore_mode: ALWAYS_OFF
+    optimistic: true
+    turn_on_action:
+      - switch.turn_on: sauna_relay_actual
+      - switch.turn_on: runtime_tracker
+      - binary_sensor.template.publish:
+          id: temp_ready_notified
+          state: OFF
+    turn_off_action:
+      - switch.turn_off: sauna_relay_actual
+      - switch.turn_off: runtime_tracker
+      - binary_sensor.template.publish:
+          id: temp_ready_notified
+          state: OFF
+
+  # Actual relay control (internal)
+  - platform: gpio
+    pin: GPIO23  # Safe output pin, no boot issues
+    id: sauna_relay_actual
+    internal: true
+    restore_mode: ALWAYS_OFF
+
+  # Runtime tracker to implement 6-hour shutoff
+  - platform: template
+    name: "Sauna Runtime Tracker"
+    id: runtime_tracker
+    internal: true
+    optimistic: true
+    restore_mode: ALWAYS_OFF
+    turn_on_action:
+      - delay: 6h
+      - switch.turn_off: sauna_master_switch
+      - homeassistant.event:
+          event: esphome.sauna_timeout
+          data:
+            message: "SAFETY: Sauna auto-shutoff after 6 hours"
+
+# LCD Display (I2C 1602 with PCF8574 backpack)
+display:
+  - platform: lcd_pcf8574
+    dimensions: 16x2
+    address: 0x27
+    id: sauna_display
+    update_interval: 1s
+    lambda: |-
+      // Line 1: Date and Time (12-hour with seconds, no AM/PM)
+      if (id(homeassistant_time).now().is_valid()) {
+        it.strftime(0, 0, "%m/%d %I:%M:%S", id(homeassistant_time).now());
+      } else {
+        it.print(0, 0, "-- Connecting --");
+      }
+      
+      // Line 2: Temperature and Heater Status
+      // Always show last valid temperature, never show ---
+      if (!isnan(id(last_valid_temp))) {
+        float temp_f = id(last_valid_temp) * 9.0/5.0 + 32.0;
+        it.printf(4, 1, "%.1f\xDF""F", temp_f);
+      } else {
+        // Only show --- on first boot before any reading
+        it.print(4, 1, "---\xDF""F");
+      }
+      
+      // Show heater status on Line 2
+      if (id(sauna_master_switch).state) {
+        it.print(14, 1, "ON");
+      } else {
+        it.print(13, 1, "OFF");
+      }
+
+# Optional: Text sensors for additional info
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "Sauna IP Address"
+    ssid:
+      name: "Sauna WiFi SSID"
