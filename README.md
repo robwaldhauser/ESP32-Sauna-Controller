@@ -690,5 +690,4 @@ If you encounter issues:
 
 **Version**: 1.0.0
 **Last Updated**: January 2026
-**Author**: Rob Makes
-**Project**: https://rob-makes.com
+**Author**: Rob Waldhauser
