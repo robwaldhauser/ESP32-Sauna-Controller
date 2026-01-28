@@ -1,4 +1,4 @@
-# ESP32 Sauna Controller
+# ESP32 Sauna Controller - THIS IS A WORK IN PROGRESS AND MAY NOT BE COMPLETE
 
 A smart sauna controller built with ESPHome, featuring temperature monitoring, automated safety cutoffs, and Home Assistant integration.
 
