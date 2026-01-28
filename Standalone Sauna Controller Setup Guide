@@ -1,0 +1,373 @@
+# Standalone Sauna Controller Setup Guide
+
+**No ESPHome installation required! Perfect for users who just want it to work.**
+
+## What You Get
+
+- ✅ Web interface accessible from any browser
+- ✅ Works on your WiFi or its own hotspot
+- ✅ Toggle sauna on/off from phone/computer
+- ✅ Live temperature display
+- ✅ No Home Assistant or server required
+- ✅ No monthly fees or cloud services
+
+## Quick Start (3 Steps)
+
+### Step 1: Download Firmware
+
+1. Go to the [Releases page](../../releases)
+2. Download `saunacontroller-v1.0.bin` (latest version)
+3. Save it to your computer
+
+### Step 2: Flash to ESP32
+
+**Using Web Flasher (Easiest - Chrome/Edge only)**:
+
+1. Connect ESP32 to computer via USB
+2. Open https://web.esphome.io/ in **Chrome or Edge browser**
+3. Click **"Connect"**
+4. Select your ESP32's COM port from the list
+5. Click **"Install"**
+6. Choose "Install from file"
+7. Select the downloaded `.bin` file
+8. Wait for upload to complete (~2 minutes)
+9. Click **"Logs"** to see it boot up
+
+**Alternative Method (ESPHome Web Tool)**:
+- Go to https://esphome.github.io/esp-web-tools/
+- Follow similar steps
+
+### Step 3: Configure WiFi
+
+**After first flash, the device will create a hotspot:**
+
+1. On your phone/computer, look for WiFi network: **"Sauna Fallback"**
+2. Connect to it (password: `fallback123`)
+3. A configuration page should open automatically
+4. If not, open browser and go to `http://192.168.4.1`
+5. Enter your WiFi network name and password
+6. Click **"Save"**
+7. Device will reboot and connect to your WiFi
+
+**Done!** Your sauna controller is now ready to use.
+
+## Finding Your Device
+
+### On Your Network
+
+The device announces itself with mDNS, so you can access it at:
+```
+http://saunacontroller.local
+```
+
+**If that doesn't work**, find the IP address:
+
+1. **Check your LCD screen** - it shows the IP address
+2. **Check your router** - look for device named "saunacontroller"
+3. **Use a network scanner app** - scan for devices on your network
+
+Then access via: `http://192.168.x.xxx` (your device's IP)
+
+## Using the Web Interface
+
+### Main Dashboard
+
+Open `http://saunacontroller.local` in any browser:
+
+```
+┌─────────────────────────────────────┐
+│      SAUNA CONTROLLER               │
+├─────────────────────────────────────┤
+│                                     │
+│  🌡️ Sauna Temperature               │
+│      165.2°F (73.9°C)               │
+│                                     │
+├─────────────────────────────────────┤
+│                                     │
+│  🔥 Sauna                            │
+│     [  ON  ] [  OFF  ]              │
+│                                     │
+│  🔥 Sauna Heater: ON                │
+│                                     │
+├─────────────────────────────────────┤
+│                                     │
+│  📶 WiFi Signal: -45 dBm            │
+│  🌐 IP Address: 192.168.1.100       │
+│  ⏱️ Uptime: 2d 5h 32m               │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+### Controls
+
+- **Sauna Toggle**: Click ON to start heating, OFF to stop
+- **Live Updates**: Temperature refreshes every 5 seconds
+- **Heater Status**: Shows if relay is actually on (for diagnostics)
+
+### Safety Features (Automatic)
+
+Even in standalone mode, all safety features work:
+
+- ⚠️ **Overheat Protection**: Shuts off at 200°F, resumes at 190°F
+- ⏱️ **6-Hour Auto-Shutoff**: Prevents leaving on accidentally
+- 🔔 **No notifications** in standalone mode (add Home Assistant for alerts)
+
+## Common Usage Scenarios
+
+### Scenario 1: Daily Home Use
+
+1. Open browser on phone
+2. Go to `http://saunacontroller.local`
+3. Toggle sauna ON
+4. Watch temperature climb on screen
+5. When ready (check LCD in sauna), enjoy!
+6. Toggle OFF when done
+
+### Scenario 2: Guest House / Remote Location
+
+1. Device creates "Sauna Fallback" hotspot
+2. Guests connect to hotspot
+3. Access at `http://192.168.4.1`
+4. No internet or home network needed!
+
+### Scenario 3: Mobile Access (Same Network)
+
+1. Connect phone to same WiFi
+2. Use phone browser
+3. Bookmark `http://saunacontroller.local`
+4. Add to home screen for app-like experience
+
+## Changing WiFi Networks
+
+Need to connect to different WiFi? Two methods:
+
+### Method 1: Using Current Connection
+
+1. Access `http://saunacontroller.local`
+2. Look for "WiFi" settings (if available in web interface)
+3. Enter new credentials
+
+### Method 2: Reset to Fallback
+
+1. Unplug power from ESP32
+2. Wait 5 seconds
+3. Plug power back in
+4. Device will try to connect to saved WiFi
+5. If it fails (after 30 seconds), fallback hotspot appears
+6. Connect to "Sauna Fallback" and reconfigure
+
+### Method 3: Factory Reset (Last Resort)
+
+If you need to completely reset:
+
+1. While device is running, press and hold BOOT button on ESP32
+2. Press and release RESET button
+3. Release BOOT button
+4. Device will boot into fallback mode
+5. Reconfigure WiFi
+
+## Updating Firmware
+
+### When Updates Available
+
+Download new firmware from releases, then:
+
+**Option 1: OTA Update (Wireless)**
+
+1. Go to `http://saunacontroller.local`
+2. Look for "Update" or "OTA" button
+3. Upload new `.bin` file
+4. Wait for update (~2 minutes)
+5. Device reboots automatically
+
+**Option 2: USB Update**
+
+1. Connect ESP32 via USB
+2. Use web flasher: https://web.esphome.io/
+3. Flash new firmware
+4. Reconnect to WiFi if needed
+
+## Troubleshooting
+
+### Can't Find `saunacontroller.local`
+
+**Solution 1**: Use IP address
+- Check LCD screen for IP
+- Or check your router's connected devices
+
+**Solution 2**: Try with `.local` and without
+- `http://saunacontroller.local`
+- `http://saunacontroller`
+
+**Solution 3**: mDNS not supported on your device
+- Some Android phones don't support .local addresses
+- Use IP address instead
+
+### Can't Access After WiFi Change
+
+1. Power cycle the device
+2. Wait for fallback hotspot
+3. Reconfigure WiFi
+4. Or connect directly via fallback hotspot
+
+### Web Interface Not Loading
+
+1. Check LCD - is device connected to WiFi?
+2. Ping the device: `ping saunacontroller.local`
+3. Try different browser
+4. Clear browser cache
+5. Check firewall isn't blocking
+
+### Temperature Not Showing
+
+1. Check wiring (see main README)
+2. Access web interface and check logs
+3. May need to reflash with correct sensor address
+
+### Relay Not Working
+
+1. Check wiring connections
+2. Verify relay has power (5V)
+3. Test relay manually (wire GPIO26 to GND)
+4. Check web interface - does status change?
+
+## Advanced: Creating Custom Firmware
+
+Want to modify the configuration? You'll need ESPHome:
+
+### One-Time Setup
+
+```bash
+# Install ESPHome
+pip install esphome
+
+# Download config
+git clone https://github.com/yourusername/esp32-sauna-controller.git
+cd esp32-sauna-controller
+
+# Edit configuration
+nano saunacontroller.yaml
+```
+
+### Make Your Changes
+
+Edit `saunacontroller.yaml` to customize:
+- WiFi credentials (hardcode them)
+- Temperature thresholds
+- Timing settings
+- Display messages
+- GPIO pins
+
+### Compile New Firmware
+
+```bash
+# Compile to .bin file
+esphome compile saunacontroller.yaml
+
+# Output will be in:
+# .esphome/build/saunacontroller/.pioenvs/saunacontroller/firmware.bin
+```
+
+### Flash Your Custom Firmware
+
+Use the same web flasher method:
+1. Go to https://web.esphome.io/
+2. Connect ESP32
+3. Install your custom `.bin` file
+
+## No Home Assistant? No Problem!
+
+This controller is designed to work **perfectly without Home Assistant**:
+
+✅ **What works standalone**:
+- Temperature monitoring
+- On/off control via web interface
+- LCD display
+- All safety features
+- Web interface
+- OTA updates
+
+❌ **What requires Home Assistant**:
+- Mobile app notifications
+- Voice control
+- Automation rules
+- History graphs
+- Remote access from outside network
+
+**95% of users don't need Home Assistant** - the web interface covers everything!
+
+## Bookmarking for Easy Access
+
+### On iPhone/iPad
+
+1. Open Safari
+2. Go to `http://saunacontroller.local`
+3. Tap the **Share** button
+4. Select **"Add to Home Screen"**
+5. Name it "Sauna"
+6. Now you have a sauna control "app"!
+
+### On Android
+
+1. Open Chrome
+2. Go to `http://saunacontroller.local`
+3. Tap the **⋮** menu
+4. Select **"Add to Home screen"**
+5. Name it "Sauna"
+
+### On Computer
+
+Simply bookmark `http://saunacontroller.local` for quick access!
+
+## Multiple Controllers
+
+Running multiple saunas? No problem!
+
+Each controller needs a unique name:
+
+1. Before flashing, edit `saunacontroller.yaml`
+2. Change this line:
+   ```yaml
+   esphome:
+     name: sauna1  # Change to: sauna2, sauna3, etc.
+   ```
+3. Compile separate firmware for each
+4. Flash to respective ESP32s
+5. Access via:
+   - `http://sauna1.local`
+   - `http://sauna2.local`
+   - `http://sauna3.local`
+
+## Security Considerations
+
+### Is the Web Interface Secure?
+
+**On home WiFi**: Reasonably secure
+- Only accessible from your local network
+- No internet exposure by default
+- Consider it like a printer - trusted network only
+
+**On fallback hotspot**: Less secure
+- Anyone can connect if they know password
+- Change default password in config if concerned
+
+### Improving Security
+
+1. **Change fallback password** in config
+2. **Use strong WiFi password** on your network
+3. **Don't expose to internet** without VPN
+4. **Keep firmware updated**
+
+For public/commercial use, consider:
+- Adding authentication to web interface
+- Using VPN for remote access
+- Implementing user roles
+
+## Support
+
+**Questions about standalone setup?**
+- Check [main README](README.md) for wiring and hardware
+- Review [Troubleshooting section](#troubleshooting)
+- Open GitHub issue with your question
+
+**This setup works completely offline** - no cloud, no subscriptions, no accounts needed!
